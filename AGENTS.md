@@ -211,3 +211,17 @@ Use one of these exact values for `category`:
 | `Appliances` | Smart home, appliances, IoT |
 | `Personal` | Personal items, non-work |
 | `Other` | Doesn't fit elsewhere |
+
+---
+
+## Workflow — Ticket Changes
+
+**1. File ticket in Mission Control** → not local sandbox tickets
+**2. Sandbox dev** → make changes on sandbox at `~/tickets-app-tinker/`
+**3. Forgejo** → push to Forgejo (origin/main)
+**4. QA** → spawn Merry for review
+   - Bug found? → fix on sandbox → push to Forgejo → QA again
+   - Repeat until clean
+**5. GitHub** → version bump in package.json + update CHANGELOG → push
+
+**Code changes:** Commit and push to Forgejo first. GitHub push only after QA passes.
