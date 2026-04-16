@@ -5,7 +5,7 @@ import matter from 'gray-matter';
 
 export const dynamic = 'force-dynamic';
 
-const TICKETS_BASE = '/mnt/clawd-projects/tickets';
+const TICKETS_BASE = '/home/samwise/tickets-data/tickets';
 // Write proxy runs on sam480, tunneled to production host via SSH
 // Container reaches it via host.containers.internal
 const WRITE_PROXY_URL = process.env.TICKET_WRITE_PROXY_URL || 'http://169.254.1.2:9187';

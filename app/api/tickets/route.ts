@@ -20,7 +20,7 @@ export interface Ticket {
   type?: string;
 }
 
-const TICKETS_BASE = '/mnt/clawd-projects/tickets';
+const TICKETS_BASE = '/home/samwise/tickets-data/tickets';
 
 async function readTickets(dir: string, status: 'open' | 'closed'): Promise<Ticket[]> {
   const tickets: Ticket[] = [];
