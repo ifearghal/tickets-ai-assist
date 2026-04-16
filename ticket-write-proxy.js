@@ -19,6 +19,7 @@
 const http = require('http');
 const fs = require('fs').promises;
 const path = require('path');
+const matter = require('gray-matter');
 
 const PORT = process.env.PORT || 9187;
 const TOKEN = process.env.TOKEN || process.env.TICKET_WRITE_PROXY_TOKEN || 'change-me-in-production';
@@ -104,9 +105,35 @@ const server = http.createServer(async (req, res) => {
       const filePath = await findTicketFile(ticketId);
       if (!filePath) return notFound(res, 'Ticket not found');
 
-      await fs.writeFile(filePath, rawContent, 'utf8');
+      // Determine current status from the directory the file lives in
+      const currentStatus = filePath.includes('/open/') ? 'open' : 'closed';
+
+      // Parse frontmatter from the incoming content to get new status
+      let newStatus = currentStatus;
+      try {
+        const parsedMatter = matter(rawContent);
+        if (parsedMatter.data && parsedMatter.data.status) {
+          newStatus = parsedMatter.data.status === 'closed' ? 'closed' : 'open';
+        }
+      } catch (e) {
+        // use currentStatus as fallback
+      }
+
+      // If status changed, move the file to the correct directory
+      let finalPath = filePath;
+      if (newStatus !== currentStatus) {
+        const filename = path.basename(filePath);
+        const newDir = path.join(TICKETS_BASE, newStatus);
+        const newPath = path.join(newDir, filename);
+        // Ensure destination directory exists
+        await fs.mkdir(newDir, { recursive: true });
+        await fs.rename(filePath, newPath);
+        finalPath = newPath;
+      }
+
+      await fs.writeFile(finalPath, rawContent, 'utf8');
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, path: filePath }));
+      res.end(JSON.stringify({ ok: true, path: finalPath, moved: newStatus !== currentStatus }));
     } catch (err) {
       console.error('Write error:', err);
       serverError(res, `Write failed: ${err.message}`);
