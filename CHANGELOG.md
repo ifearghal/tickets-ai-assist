@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.4] — 2026-04-27
+
+### Security
+
+- **Strict PUT validation**: `VALID_STATUSES` enum restricts status field to only `open` or `closed`; rejects any other value with 400
+- **Frontmatter required**: Requests without valid YAML frontmatter (`---...---`) are rejected before parsing
+- **No error detail leaks**: 400/500 responses no longer expose internal error messages or stack traces
+
 ## [0.2.3] — 2026-04-17
 
 ### Fixed
