@@ -7,6 +7,11 @@ import { randomUUID } from 'crypto';
 export const dynamic = 'force-dynamic';
 
 const TICKETS_BASE = process.env.TICKETS_BASE || './data/tickets';
+const VALID_STATUSES = new Set(['open', 'closed']);
+
+function hasValidFrontmatter(rawContent: string): boolean {
+  return /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/.test(rawContent);
+}
 
 async function findTicketFile(id: string): Promise<{ filePath: string; status: 'open' | 'closed' } | null> {
   for (const status of ['open', 'closed'] as const) {
@@ -79,7 +84,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Failed to load ticket:', error);
-    return NextResponse.json({ error: 'Failed to load ticket', detail: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to load ticket' }, { status: 500 });
   }
 }
 
@@ -97,11 +102,19 @@ export async function PUT(
       return NextResponse.json({ error: 'rawContent must be a string' }, { status: 400 });
     }
 
+    if (!hasValidFrontmatter(rawContent)) {
+      return NextResponse.json({ error: 'Invalid markdown/frontmatter' }, { status: 400 });
+    }
+
     let parsed;
     try {
       parsed = matter(rawContent);
     } catch {
       return NextResponse.json({ error: 'Invalid markdown/frontmatter' }, { status: 400 });
+    }
+
+    if (parsed.data.status !== undefined && !VALID_STATUSES.has(String(parsed.data.status))) {
+      return NextResponse.json({ error: 'Invalid status. Expected open or closed.' }, { status: 400 });
     }
 
     const found = await findTicketFile(id);
@@ -126,12 +139,12 @@ export async function PUT(
     } catch (err) {
       try { await fs.unlink(tmpPath); } catch { /* ignore */ }
       console.error('Failed to write ticket:', err);
-      return NextResponse.json({ error: 'Failed to write ticket', detail: err instanceof Error ? err.message : String(err) }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to write ticket' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, filename, status: newStatus });
   } catch (error) {
     console.error('Failed to save ticket:', error);
-    return NextResponse.json({ error: 'Failed to save ticket', detail: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to save ticket' }, { status: 500 });
   }
 }

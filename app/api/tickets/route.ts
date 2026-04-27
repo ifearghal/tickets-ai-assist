@@ -112,7 +112,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('Failed to load tickets:', error);
     return NextResponse.json(
-      { error: 'Failed to load tickets', detail: error instanceof Error ? error.message : String(error) },
+      { error: 'Failed to load tickets' },
       { status: 500 }
     );
   }
@@ -126,7 +126,7 @@ export async function POST() {
   } catch (error) {
     console.error('Failed to allocate ticket ID:', error);
     return NextResponse.json(
-      { error: 'Failed to allocate ticket ID', detail: error instanceof Error ? error.message : String(error) },
+      { error: 'Failed to allocate ticket ID' },
       { status: 500 }
     );
   }
